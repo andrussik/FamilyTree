@@ -1,0 +1,47 @@
+@model IEnumerable<Domain.Relationship>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.RelationshipType)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Child)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Parent)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.RelationshipType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Child.FirstName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Parent.FirstName)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.RelationshipId">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.RelationshipId">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.RelationshipId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
