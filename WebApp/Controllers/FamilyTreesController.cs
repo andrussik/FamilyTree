@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DAL.App.EF;
 using Domain;
+using Microsoft.AspNetCore.Identity;
+using WebApp.ViewModels;
 
 namespace WebApp.Controllers
 {
@@ -18,6 +21,14 @@ namespace WebApp.Controllers
         {
             _context = context;
         }
+        
+        // [BindProperty(SupportsGet = true)]
+        // public string SearchString { get; set; }
+        // public string FirstNameSort { get; set; }
+        // public string LastNameSort { get; set; }
+        // public string DateOfBirthSort { get; set; }
+        // public string GenderSort { get; set; }
+        // public IList<Person> Persons { get; set; }
 
         // GET: FamilyTrees
         public async Task<IActionResult> Index()
@@ -59,13 +70,14 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("FamilyTreeId,FamilyTreeName,IsPublic,UserId")] FamilyTree familyTree)
         {
+            familyTree.UserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (ModelState.IsValid)
             {
                 _context.Add(familyTree);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", familyTree.UserId);
+            // ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", familyTree.UserId);
             return View(familyTree);
         }
 
@@ -82,7 +94,7 @@ namespace WebApp.Controllers
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", familyTree.UserId);
+            familyTree.UserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             return View(familyTree);
         }
 
@@ -118,7 +130,7 @@ namespace WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", familyTree.UserId);
+            familyTree.UserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             return View(familyTree);
         }
 
@@ -155,6 +167,90 @@ namespace WebApp.Controllers
         private bool FamilyTreeExists(int id)
         {
             return _context.FamilyTrees.Any(e => e.FamilyTreeId == id);
+        }
+        
+        // GET: FamilyTrees/PeopleInFamilyTree
+        public async Task<IActionResult> PeopleInFamilyTree(int? id, string sortOrder, string searchString)
+        {
+            var vm = new PeopleInFamilyTreeViewModel();
+            
+            vm.FamilyTree = await _context.FamilyTrees
+                .Include(f => f.Persons)
+                .ThenInclude(t => t.Gender)
+                .Include(f => f.Persons)
+                .ThenInclude(t => t.ChildRelationships)
+                .ThenInclude(t => t.Parent)
+                .Include(f => f.Persons)
+                .ThenInclude(t => t.ChildRelationships)
+                .ThenInclude(t => t.RelationshipType)
+                .FirstOrDefaultAsync(m => m.FamilyTreeId == id);
+            
+            vm.Persons = vm.FamilyTree.Persons.ToList();
+            
+            vm.FirstNameSort = String.IsNullOrEmpty(sortOrder) ? "firstName_asc" : "";
+            vm.LastNameSort = String.IsNullOrEmpty(sortOrder) ? "lastName_asc" : "";
+            vm.DateOfBirthSort = String.IsNullOrEmpty(sortOrder) ? "dateOfBirth_asc" : "";
+            vm.GenderSort = String.IsNullOrEmpty(sortOrder) ? "gender_asc" : "";
+            
+            IQueryable<Person> personsIQ = from s in _context.Persons
+                    .Include(a => a.Gender)
+                    .Include(t => t.ChildRelationships)
+                    .ThenInclude(t => t.Parent)
+                    .Include(t => t.ChildRelationships)
+                    .ThenInclude(t => t.RelationshipType)
+                    .Where(t => t.FamilyTreeId == id)
+                select s;
+            
+            switch (sortOrder)
+            {
+                case "firstName_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.FirstName);
+                    break;
+                case "lastName_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.LastName);
+                    break;
+                case "dateOfBirth_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.DateOfBirth);
+                    break;
+                case "gender_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.Gender.Name);
+                    break;
+                default:
+                    personsIQ = personsIQ.OrderBy(s => s.LastName);
+                    break;
+            }
+            
+            vm.Persons = await personsIQ.ToListAsync();
+            
+            
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchString = searchString.ToLower().Trim();
+            }
+            
+            var personQuery = _context.Persons
+                .Include(a => a.Gender)
+                .Include(t => t.ChildRelationships)
+                .ThenInclude(t => t.Parent)
+                .Include(t => t.ChildRelationships)
+                .ThenInclude(t => t.RelationshipType)
+                .AsQueryable();
+            
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                personQuery = personQuery.Where(s =>
+                    s.FirstName.ToLower().Contains(searchString) ||
+                    s.LastName.ToLower().Contains(searchString)
+                );
+            
+                personQuery = personQuery.OrderBy(a => a.LastName);
+
+                vm.SearchString = searchString;
+                vm.Persons = await personQuery.ToListAsync();
+            
+            }
+            
+            return View(vm);
         }
     }
 }

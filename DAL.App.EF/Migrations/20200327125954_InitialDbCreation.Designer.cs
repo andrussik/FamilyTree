@@ -3,14 +3,16 @@ using System;
 using DAL.App.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.App.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200327125954_InitialDbCreation")]
+    partial class InitialDbCreation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,7 +154,7 @@ namespace DAL.App.EF.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("FamilyTreeId")
+                    b.Property<int?>("FamilyTreeId")
                         .HasColumnType("int");
 
                     b.Property<string>("FirstName")
@@ -372,11 +374,9 @@ namespace DAL.App.EF.Migrations
 
             modelBuilder.Entity("Domain.Person", b =>
                 {
-                    b.HasOne("Domain.FamilyTree", "FamilyTree")
+                    b.HasOne("Domain.FamilyTree", null)
                         .WithMany("Persons")
-                        .HasForeignKey("FamilyTreeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("FamilyTreeId");
 
                     b.HasOne("Domain.Gender", "Gender")
                         .WithMany("Persons")

@@ -4,12 +4,12 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>My Family Trees</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table">
+<table class="table text-left">
     <thead>
         <tr>
             <th>
@@ -18,25 +18,20 @@
             <th>
                 @Html.DisplayNameFor(model => model.IsPublic)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
+            <td class="align-middle text-left">
                 @Html.DisplayFor(modelItem => item.FamilyTreeName)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsPublic)
+            <td class="align-middle text-left">
+                @(item.IsPublic ? "Yes" : "No")
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.FirstName)
-            </td>
-            <td>
+            <td class="align-middle text-left">
+                <a asp-action="PeopleInFamilyTree" asp-route-id="@item.FamilyTreeId">View people</a> |
                 <a asp-action="Edit" asp-route-id="@item.FamilyTreeId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.FamilyTreeId">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.FamilyTreeId">Delete</a>

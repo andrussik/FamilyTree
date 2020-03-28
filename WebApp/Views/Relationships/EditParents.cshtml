@@ -1,0 +1,36 @@
+@model WebApp.ViewModels.EditParentsViewModel
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit parents for @Model.Child.FirstLastName</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="EditParents">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <input type="hidden" asp-for="ChildId" />
+            <div class="form-group">
+                <label asp-for="MotherId" class="control-label"></label>
+                <select asp-for="MotherId" class="form-control" asp-items="Model.MotherSelectList"></select>
+            </div>
+            <div class="form-group">
+                <label asp-for="FatherId" class="control-label"></label>
+                <select asp-for="FatherId" class="form-control" asp-items="Model.FatherSelectList"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-controller="FamilyTrees" asp-action="PeopleInFamilyTree" asp-route-id="@Model.Child.FamilyTreeId">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

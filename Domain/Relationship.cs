@@ -7,19 +7,13 @@ namespace Domain
     {
         public int RelationshipId { get; set; }
 
-        public RelationshipType RelationshipType { get; set; } = default!;
+        public int RelationshipTypeId { get; set; } = default!;
+        public RelationshipType? RelationshipType { get; set; }
 
         public int ChildId { get; set; } = default!;
         public Person? Child { get; set; }
 
         public int ParentId { get; set; } = default!;
         public Person? Parent { get; set; }
-    }
-
-    public enum RelationshipType
-    {
-        Child,
-        Mother,
-        Father
     }
 }

@@ -15,27 +15,31 @@ namespace Domain
         [MaxLength(150)]
         public string FirstName { get; set; } = default!;
 
-        [DisplayName("First name")]
+        [DisplayName("Last name")]
         [MinLength(1)]
         [MaxLength(150)]
         public string LastName { get; set; } = default!;
 
-        public Gender Gender { get; set; } = default!;
-
         [DisplayName("Date of birth")] 
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}")]
+        [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; } = default!;
+
+        public string? ImageSource { get; set; }
+        
+        [DisplayName("Gender")]
+        public int GenderId { get; set; } = default!;
+        public Gender? Gender { get; set; }
+
+        public int FamilyTreeId { get; set; } = default!;
+        public FamilyTree? FamilyTree { get; set; }
 
         [InverseProperty("Child")]
         public ICollection<Relationship>? ChildRelationships { get; set; }
         
         [InverseProperty("Parent")]
         public ICollection<Relationship>? ParentRelationships { get; set; }
-    }
 
-    public enum Gender
-    {
-        Female,
-        Male,
-        Unknown
+        public string FirstLastName => FirstName + " " + LastName;
     }
 }

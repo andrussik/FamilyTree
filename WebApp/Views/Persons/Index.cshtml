@@ -1,4 +1,4 @@
-@model IEnumerable<Domain.Person>
+@model WebApp.ViewModels.PersonsViewModel
 
 @{
     ViewData["Title"] = "Index";
@@ -13,22 +13,25 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.FirstName)
+                @Html.DisplayNameFor(model => model.Person.FirstName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.LastName)
+                @Html.DisplayNameFor(model => model.Person.LastName)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Gender)
+                @Html.DisplayNameFor(model => model.Person.DateOfBirth)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.DateOfBirth)
+                @Html.DisplayNameFor(model => model.Person.ImageSource)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Person.Gender)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model.Persons) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.FirstName)
@@ -37,10 +40,13 @@
                 @Html.DisplayFor(modelItem => item.LastName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Gender)
+                @Html.DisplayFor(modelItem => item.DateOfBirth)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.DateOfBirth)
+                @Html.DisplayFor(modelItem => item.ImageSource)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Gender.Name)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.PersonId">Edit</a> |

@@ -7,25 +7,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DAL.App.EF;
 using Domain;
+using WebApp.ViewModels;
 
 namespace WebApp.Controllers
 {
-    public class PersonFamilyTreesController : Controller
+    public class RelationshipTypesController : Controller
     {
         private readonly AppDbContext _context;
 
-        public PersonFamilyTreesController(AppDbContext context)
+        public RelationshipTypesController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: PersonFamilyTrees
+        // GET: RelationshipTypes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.PersonFamilyTrees.ToListAsync());
+            return View(await _context.RelationshipTypes.ToListAsync());
         }
 
-        // GET: PersonFamilyTrees/Details/5
+        // GET: RelationshipTypes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +34,39 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            var personFamilyTree = await _context.PersonFamilyTrees
-                .FirstOrDefaultAsync(m => m.PersonFamilyTreeId == id);
-            if (personFamilyTree == null)
+            var relationshipType = await _context.RelationshipTypes
+                .FirstOrDefaultAsync(m => m.RelationshipTypeId == id);
+            if (relationshipType == null)
             {
                 return NotFound();
             }
 
-            return View(personFamilyTree);
+            return View(relationshipType);
         }
 
-        // GET: PersonFamilyTrees/Create
+        // GET: RelationshipTypes/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: PersonFamilyTrees/Create
+        // POST: RelationshipTypes/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PersonFamilyTreeId")] PersonFamilyTree personFamilyTree)
+        public async Task<IActionResult> Create([Bind("RelationshipTypeId,Type")] RelationshipType relationshipType)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(personFamilyTree);
+                _context.Add(relationshipType);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(personFamilyTree);
+            return View(relationshipType);
         }
 
-        // GET: PersonFamilyTrees/Edit/5
+        // GET: RelationshipTypes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +74,22 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            var personFamilyTree = await _context.PersonFamilyTrees.FindAsync(id);
-            if (personFamilyTree == null)
+            var relationshipType = await _context.RelationshipTypes.FindAsync(id);
+            if (relationshipType == null)
             {
                 return NotFound();
             }
-            return View(personFamilyTree);
+            return View(relationshipType);
         }
 
-        // POST: PersonFamilyTrees/Edit/5
+        // POST: RelationshipTypes/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PersonFamilyTreeId")] PersonFamilyTree personFamilyTree)
+        public async Task<IActionResult> Edit(int id, [Bind("RelationshipTypeId,Type")] RelationshipType relationshipType)
         {
-            if (id != personFamilyTree.PersonFamilyTreeId)
+            if (id != relationshipType.RelationshipTypeId)
             {
                 return NotFound();
             }
@@ -97,12 +98,12 @@ namespace WebApp.Controllers
             {
                 try
                 {
-                    _context.Update(personFamilyTree);
+                    _context.Update(relationshipType);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PersonFamilyTreeExists(personFamilyTree.PersonFamilyTreeId))
+                    if (!RelationshipTypeExists(relationshipType.RelationshipTypeId))
                     {
                         return NotFound();
                     }
@@ -113,10 +114,10 @@ namespace WebApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(personFamilyTree);
+            return View(relationshipType);
         }
 
-        // GET: PersonFamilyTrees/Delete/5
+        // GET: RelationshipTypes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,30 +125,30 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            var personFamilyTree = await _context.PersonFamilyTrees
-                .FirstOrDefaultAsync(m => m.PersonFamilyTreeId == id);
-            if (personFamilyTree == null)
+            var relationshipType = await _context.RelationshipTypes
+                .FirstOrDefaultAsync(m => m.RelationshipTypeId == id);
+            if (relationshipType == null)
             {
                 return NotFound();
             }
 
-            return View(personFamilyTree);
+            return View(relationshipType);
         }
 
-        // POST: PersonFamilyTrees/Delete/5
+        // POST: RelationshipTypes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var personFamilyTree = await _context.PersonFamilyTrees.FindAsync(id);
-            _context.PersonFamilyTrees.Remove(personFamilyTree);
+            var relationshipType = await _context.RelationshipTypes.FindAsync(id);
+            _context.RelationshipTypes.Remove(relationshipType);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PersonFamilyTreeExists(int id)
+        private bool RelationshipTypeExists(int id)
         {
-            return _context.PersonFamilyTrees.Any(e => e.PersonFamilyTreeId == id);
+            return _context.RelationshipTypes.Any(e => e.RelationshipTypeId == id);
         }
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using DAL.App.EF;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Domain.Identity;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
@@ -24,17 +27,20 @@ namespace WebApp.Areas.Identity.Pages.Account
         private readonly UserManager<AppUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly AppDbContext _context;
 
         public RegisterModel(
             UserManager<AppUser> userManager,
             SignInManager<AppUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            AppDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _context = context;
         }
 
         [BindProperty]
@@ -51,13 +57,19 @@ namespace WebApp.Areas.Identity.Pages.Account
             [Display(Name = "Email")]
             public string Email { get; set; }
             
-            [Required]
-            [Display(Name = "First name")]
-            public string FirstName { get; set; }
+            [MinLength(1)]
+            [MaxLength(256)]
+            public string FirstName { get; set; } = default!;
+
+            [MinLength(1)]
+            [MaxLength(256)]
+            public string LastName { get; set; } = default!;
             
-            [Required]
-            [Display(Name = "Last name")]
-            public string LastName { get; set; }
+            [DisplayName("Date of birth")] 
+            public DateTime DateOfBirth { get; set; } = default!;
+            
+            [DisplayName("Gender")] 
+            public int GenderId { get; set; } = default!;
 
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -73,6 +85,7 @@ namespace WebApp.Areas.Identity.Pages.Account
 
         public async Task OnGetAsync(string? returnUrl = null)
         {
+            ViewData["GenderId"] = new SelectList(_context.Genders, "GenderId", "Name");
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
@@ -83,8 +96,12 @@ namespace WebApp.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new AppUser { UserName = Input.Email, Email = Input.Email, 
-                    FirstName = Input.FirstName, LastName = Input.LastName};
+                var user = new AppUser
+                {
+                    UserName = Input.Email, Email = Input.Email,
+                    FirstName = Input.FirstName, LastName = Input.LastName, DateOfBirth = Input.DateOfBirth,
+                    GenderId = Input.GenderId
+                };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {

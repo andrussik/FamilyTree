@@ -15,6 +15,7 @@ namespace Domain
         [MaxLength(50)]
         public string FamilyTreeName { get; set; } = default!;
 
+        [DisplayName("Public")]
         public Boolean IsPublic { get; set; } = default!;
 
         public int UserId { get; set; } = default!;

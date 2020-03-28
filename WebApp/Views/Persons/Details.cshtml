@@ -1,42 +1,44 @@
-@model Domain.Person
+@model WebApp.ViewModels.PersonsViewModel
 
 @{
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
-
 <div>
-    <h4>Person</h4>
+    <img src="@Url.Content(Model.Person.ImageSource)" class="card-img" alt="Card image cap" style="width: 13%"/>
+    <div style="font-size: 0.8rem">
+        <a>Edit photo</a> |
+        <a>Remove photo</a>
+        </div>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FirstName)
+            @Html.DisplayNameFor(model => model.Person.FirstName)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FirstName)
+            @Html.DisplayFor(model => model.Person.FirstName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LastName)
+            @Html.DisplayNameFor(model => model.Person.LastName)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LastName)
+            @Html.DisplayFor(model => model.Person.LastName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Gender)
+            @Html.DisplayNameFor(model => model.Person.DateOfBirth)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Gender)
+            @Html.DisplayFor(model => model.Person.DateOfBirth)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateOfBirth)
+            @Html.DisplayNameFor(model => model.Person.Gender)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateOfBirth)
+            @Html.DisplayFor(model => model.Person.Gender.Name)
         </dd>
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.PersonId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.Person.PersonId">Edit</a> |
+    <a asp-controller="FamilyTrees" asp-action="PeopleInFamilyTree" asp-route-id="@Model.Person.FamilyTreeId">Back to List</a>
 </div>

@@ -1,0 +1,91 @@
+@using Domain
+@using Microsoft.Extensions.Hosting.Internal
+@model WebApp.ViewModels.PeopleInFamilyTreeViewModel
+
+<div style="margin-bottom: 1rem">
+    <a asp-controller="Persons" asp-action="Create" asp-route-id="@Model.FamilyTree.FamilyTreeId">
+        <svg class="bi bi-person-plus-fill" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 100-6 3 3 0 000 6zm7.5-3a.5.5 0 01.5.5v2a.5.5 0 01-.5.5h-2a.5.5 0 010-1H13V5.5a.5.5 0 01.5-.5z" clip-rule="evenodd"/>
+          <path fill-rule="evenodd" d="M13 7.5a.5.5 0 01.5-.5h2a.5.5 0 010 1H14v1.5a.5.5 0 01-1 0v-2z" clip-rule="evenodd"/>
+        </svg>
+        Add person to family tree
+    </a>
+</div>
+
+<form method="get">
+    <div class="p-1 bg-light rounded rounded-pill shadow-sm mb-4">
+        <div class="input-group">
+            <input type="search" placeholder="What're you searching for?" aria-describedby="button-addon1" name="SearchString" value="@Model.SearchString" class="form-control border-0 bg-light">
+            <div class="input-group-append">
+                <button type="submit" id="button-addon1" class="btn btn-link text-primary">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<table class="table table-hover" style="text-align: center">
+     <thead>
+     <tr>
+         <th style="width: 10%"></th>
+         <th style="width: 20%">
+             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.FirstNameSort">Name</a>
+         </th>
+         <th style="width: 20%">
+             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.GenderSort">Mother</a>
+         </th>
+         <th style="width: 20%">
+             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.GenderSort">Father</a>
+         </th>
+         <th style="width: 30%"></th>
+     </tr>
+     </thead>
+     <tbody>
+
+     @foreach (var item in Model.Persons)
+     {
+         var relationships = item.ChildRelationships.ToList();
+         Person mother = null;
+         Person father = null;
+         foreach (var relationship in relationships)
+         {
+             if (relationship.RelationshipType.Type == "mother-child")
+             {
+                 mother = relationship.Parent;
+             }
+             else if (relationship.RelationshipType.Type == "father-child")
+             {
+                 father = relationship.Parent;
+             }
+         }
+         <tr>
+             <td>
+                 <img src="@Url.Content(item.ImageSource)" class="card-img" alt="Card image cap"/>
+             </td>
+             <td class="align-middle">
+                 <a asp-controller="Persons" asp-action="Details" asp-route-id="@item.PersonId">
+                     @Html.DisplayFor(modelItem => item.FirstLastName)
+                 </a>
+             </td>
+             <td class="align-middle">
+                 <a asp-controller="Persons" asp-action="Details" asp-route-id="@mother?.PersonId">
+                     @mother?.FirstLastName
+                 </a>
+             </td>
+             <td class="align-middle">
+                 <a asp-controller="Persons" asp-action="Details" asp-route-id="@father?.PersonId">
+                     @father?.FirstLastName
+                 </a>
+             </td>
+             <td class="align-middle text-right">
+                 <a asp-controller="Persons" asp-action="Edit" asp-route-id="@item.PersonId">Edit person</a> |
+                 <a asp-controller="Relationships" asp-action="EditParents" asp-route-childId="@item.PersonId">Edit parents</a> |
+                 <a asp-controller="Persons" asp-action="Delete" asp-route-id="@item.PersonId">Delete</a>
+             </td>
+         </tr>
+
+     }
+
+    </tbody>
+</table>

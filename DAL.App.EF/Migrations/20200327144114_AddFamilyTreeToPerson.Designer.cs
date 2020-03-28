@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.App.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20200322214714_InitialDbCreation")]
-    partial class InitialDbCreation
+    [Migration("20200327144114_AddFamilyTreeToPerson")]
+    partial class AddFamilyTreeToPerson
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -33,19 +33,30 @@ namespace DAL.App.EF.Migrations
                     b.Property<bool>("IsPublic")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int?>("PersonFamilyTreeId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("FamilyTreeId");
 
-                    b.HasIndex("PersonFamilyTreeId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("FamilyTrees");
+                });
+
+            modelBuilder.Entity("Domain.Gender", b =>
+                {
+                    b.Property<int>("GenderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(20) CHARACTER SET utf8mb4")
+                        .HasMaxLength(20);
+
+                    b.HasKey("GenderId");
+
+                    b.ToTable("Genders");
                 });
 
             modelBuilder.Entity("Domain.Identity.AppUser", b =>
@@ -61,6 +72,9 @@ namespace DAL.App.EF.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("Email")
                         .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
                         .HasMaxLength(256);
@@ -70,11 +84,19 @@ namespace DAL.App.EF.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasMaxLength(256);
+
+                    b.Property<int>("GenderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageSource")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
+                        .HasMaxLength(256);
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
@@ -111,6 +133,8 @@ namespace DAL.App.EF.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GenderId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasName("EmailIndex");
 
@@ -130,7 +154,7 @@ namespace DAL.App.EF.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("FamilyTreeId")
+                    b.Property<int>("FamilyTreeId")
                         .HasColumnType("int");
 
                     b.Property<string>("FirstName")
@@ -138,35 +162,24 @@ namespace DAL.App.EF.Migrations
                         .HasColumnType("varchar(150) CHARACTER SET utf8mb4")
                         .HasMaxLength(150);
 
-                    b.Property<int>("Gender")
+                    b.Property<int>("GenderId")
                         .HasColumnType("int");
+
+                    b.Property<string>("ImageSource")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("varchar(150) CHARACTER SET utf8mb4")
                         .HasMaxLength(150);
 
-                    b.Property<int?>("PersonFamilyTreeId")
-                        .HasColumnType("int");
-
                     b.HasKey("PersonId");
 
                     b.HasIndex("FamilyTreeId");
 
-                    b.HasIndex("PersonFamilyTreeId");
+                    b.HasIndex("GenderId");
 
                     b.ToTable("Persons");
-                });
-
-            modelBuilder.Entity("Domain.PersonFamilyTree", b =>
-                {
-                    b.Property<int>("PersonFamilyTreeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.HasKey("PersonFamilyTreeId");
-
-                    b.ToTable("PersonFamilyTrees");
                 });
 
             modelBuilder.Entity("Domain.Relationship", b =>
@@ -181,7 +194,7 @@ namespace DAL.App.EF.Migrations
                     b.Property<int>("ParentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RelationshipType")
+                    b.Property<int>("RelationshipTypeId")
                         .HasColumnType("int");
 
                     b.HasKey("RelationshipId");
@@ -190,7 +203,25 @@ namespace DAL.App.EF.Migrations
 
                     b.HasIndex("ParentId");
 
+                    b.HasIndex("RelationshipTypeId");
+
                     b.ToTable("Relationships");
+                });
+
+            modelBuilder.Entity("Domain.RelationshipType", b =>
+                {
+                    b.Property<int>("RelationshipTypeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(100) CHARACTER SET utf8mb4")
+                        .HasMaxLength(100);
+
+                    b.HasKey("RelationshipTypeId");
+
+                    b.ToTable("RelationshipTypes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -325,10 +356,6 @@ namespace DAL.App.EF.Migrations
 
             modelBuilder.Entity("Domain.FamilyTree", b =>
                 {
-                    b.HasOne("Domain.PersonFamilyTree", null)
-                        .WithMany("FamilyTrees")
-                        .HasForeignKey("PersonFamilyTreeId");
-
                     b.HasOne("Domain.Identity.AppUser", "User")
                         .WithMany("FamilyTrees")
                         .HasForeignKey("UserId")
@@ -336,15 +363,28 @@ namespace DAL.App.EF.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Identity.AppUser", b =>
+                {
+                    b.HasOne("Domain.Gender", "Gender")
+                        .WithMany()
+                        .HasForeignKey("GenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Person", b =>
                 {
-                    b.HasOne("Domain.FamilyTree", null)
+                    b.HasOne("Domain.FamilyTree", "FamilyTree")
                         .WithMany("Persons")
-                        .HasForeignKey("FamilyTreeId");
+                        .HasForeignKey("FamilyTreeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("Domain.PersonFamilyTree", null)
+                    b.HasOne("Domain.Gender", "Gender")
                         .WithMany("Persons")
-                        .HasForeignKey("PersonFamilyTreeId");
+                        .HasForeignKey("GenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Relationship", b =>
@@ -358,6 +398,12 @@ namespace DAL.App.EF.Migrations
                     b.HasOne("Domain.Person", "Parent")
                         .WithMany("ParentRelationships")
                         .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.RelationshipType", "RelationshipType")
+                        .WithMany("Relationships")
+                        .HasForeignKey("RelationshipTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

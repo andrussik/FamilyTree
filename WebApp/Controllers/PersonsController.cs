@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DAL.App.EF;
 using Domain;
+using WebApp.ViewModels;
 
 namespace WebApp.Controllers
 {
@@ -22,7 +23,15 @@ namespace WebApp.Controllers
         // GET: Persons
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Persons.ToListAsync());
+            var vm = new PersonsViewModel
+            {
+                Persons = await _context.Persons
+                    .Include(p => p.Gender)
+                    .Include(p => p.FamilyTree)
+                    .ToListAsync()
+            };
+            
+            return View(vm);
         }
 
         // GET: Persons/Details/5
@@ -32,21 +41,39 @@ namespace WebApp.Controllers
             {
                 return NotFound();
             }
+            
+            var vm = new PersonsViewModel
+            {
+                Person = await _context.Persons
+                    .Include(p => p.Gender)
+                    .Include(p => p.FamilyTree)
+                    .FirstOrDefaultAsync(m => m.PersonId == id)
+            };
 
-            var person = await _context.Persons
-                .FirstOrDefaultAsync(m => m.PersonId == id);
-            if (person == null)
+            
+            if (vm.Person == null)
             {
                 return NotFound();
             }
 
-            return View(person);
+            return View(vm);
         }
 
         // GET: Persons/Create
-        public IActionResult Create()
+        public IActionResult Create(int? id)
         {
-            return View();
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var vm = new PersonsViewModel
+            {
+                FamilyTreeId = id,
+                GenderSelectList = new SelectList(_context.Genders, "GenderId", "Name"),
+            };
+            
+            return View(vm);
         }
 
         // POST: Persons/Create
@@ -54,15 +81,32 @@ namespace WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PersonId,FirstName,LastName,Gender,DateOfBirth")] Person person)
+        public async Task<IActionResult> Create(int id, Person person)
         {
+            
             if (ModelState.IsValid)
             {
+                person.FamilyTreeId = id;
+                if (person.ImageSource == null && person.GenderId == 1)
+                {
+                    person.ImageSource = "~/images/female-user-avatar.png";
+                } 
+                else if (person.ImageSource == null && person.GenderId == 2)
+                {
+                    person.ImageSource = "~/images/male-user-avatar.png";
+                }
+                
                 _context.Add(person);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id });
             }
-            return View(person);
+            
+            var vm = new PersonsViewModel
+            {
+                GenderSelectList = new SelectList(_context.Genders, "GenderId", "Name", person.GenderId)
+            };
+            
+            return View(vm);
         }
 
         // GET: Persons/Edit/5
@@ -74,11 +118,19 @@ namespace WebApp.Controllers
             }
 
             var person = await _context.Persons.FindAsync(id);
+            
             if (person == null)
             {
                 return NotFound();
             }
-            return View(person);
+            
+            var vm = new PersonsViewModel
+            {
+                Person = person,
+                GenderSelectList = new SelectList(_context.Genders, "GenderId", "Name", person.GenderId)
+            };
+
+            return View(vm);
         }
 
         // POST: Persons/Edit/5
@@ -86,7 +138,7 @@ namespace WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PersonId,FirstName,LastName,Gender,DateOfBirth")] Person person)
+        public async Task<IActionResult> Edit(int id, Person person)
         {
             if (id != person.PersonId)
             {
@@ -95,25 +147,19 @@ namespace WebApp.Controllers
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(person);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PersonExists(person.PersonId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                
+                _context.Update(person);
+                await _context.SaveChangesAsync();
+                
+                return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id });
             }
-            return View(person);
+            var vm = new PersonsViewModel
+            {
+                Person = person,
+                GenderSelectList = new SelectList(_context.Genders, "GenderId", "Name", person.GenderId)
+            };
+            
+            return View(vm);
         }
 
         // GET: Persons/Delete/5
@@ -125,13 +171,20 @@ namespace WebApp.Controllers
             }
 
             var person = await _context.Persons
+                .Include(p => p.Gender)
+                .Include(p => p.FamilyTree)
                 .FirstOrDefaultAsync(m => m.PersonId == id);
             if (person == null)
             {
                 return NotFound();
             }
 
-            return View(person);
+            var vm = new PersonsViewModel
+            {
+                Person = person
+            };
+                
+            return View(vm);
         }
 
         // POST: Persons/Delete/5
@@ -142,7 +195,7 @@ namespace WebApp.Controllers
             var person = await _context.Persons.FindAsync(id);
             _context.Persons.Remove(person);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id });
         }
 
         private bool PersonExists(int id)

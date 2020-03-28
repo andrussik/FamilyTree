@@ -16,4 +16,16 @@
     <ItemGroup>
       <ProjectReference Include="..\DAL.App.EF\DAL.App.EF.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\PersonFamilyTrees\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\PersonFamilyTrees\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\PersonFamilyTrees\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\PersonFamilyTrees\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\PersonFamilyTrees\Index.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\images" />
+    </ItemGroup>
 </Project>

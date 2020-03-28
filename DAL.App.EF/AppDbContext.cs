@@ -11,8 +11,9 @@ namespace DAL.App.EF
     {
         public DbSet<FamilyTree> FamilyTrees { get; set; } = default!;
         public DbSet<Person> Persons { get; set; } = default!;
-        public DbSet<PersonFamilyTree> PersonFamilyTrees { get; set; } = default!;
         public DbSet<Relationship> Relationships { get; set; } = default!;
+        public DbSet<RelationshipType> RelationshipTypes { get; set; } = default!;
+        public DbSet<Gender> Genders { get; set; } = default!;
         
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options)

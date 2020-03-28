@@ -24,43 +24,29 @@ namespace DAL.App.EF.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "Genders",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    GenderId = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserName = table.Column<string>(maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
-                    Email = table.Column<string>(maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(nullable: false),
-                    PasswordHash = table.Column<string>(nullable: true),
-                    SecurityStamp = table.Column<string>(nullable: true),
-                    ConcurrencyStamp = table.Column<string>(nullable: true),
-                    PhoneNumber = table.Column<string>(nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
-                    LockoutEnabled = table.Column<bool>(nullable: false),
-                    AccessFailedCount = table.Column<int>(nullable: false),
-                    FirstName = table.Column<string>(nullable: false),
-                    LastName = table.Column<string>(nullable: false)
+                    Name = table.Column<string>(maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.PrimaryKey("PK_Genders", x => x.GenderId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PersonFamilyTrees",
+                name: "RelationshipTypes",
                 columns: table => new
                 {
-                    PersonFamilyTreeId = table.Column<int>(nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
+                    RelationshipTypeId = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Type = table.Column<string>(maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PersonFamilyTrees", x => x.PersonFamilyTreeId);
+                    table.PrimaryKey("PK_RelationshipTypes", x => x.RelationshipTypeId);
                 });
 
             migrationBuilder.CreateTable(
@@ -81,6 +67,43 @@ namespace DAL.App.EF.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserName = table.Column<string>(maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(maxLength: 256, nullable: true),
+                    Email = table.Column<string>(maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(nullable: false),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    SecurityStamp = table.Column<string>(nullable: true),
+                    ConcurrencyStamp = table.Column<string>(nullable: true),
+                    PhoneNumber = table.Column<string>(nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
+                    LockoutEnabled = table.Column<bool>(nullable: false),
+                    AccessFailedCount = table.Column<int>(nullable: false),
+                    FirstName = table.Column<string>(maxLength: 256, nullable: false),
+                    LastName = table.Column<string>(maxLength: 256, nullable: false),
+                    DateOfBirth = table.Column<DateTime>(nullable: false),
+                    ImageSource = table.Column<string>(nullable: true),
+                    GenderId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Genders_GenderId",
+                        column: x => x.GenderId,
+                        principalTable: "Genders",
+                        principalColumn: "GenderId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -177,18 +200,11 @@ namespace DAL.App.EF.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FamilyTreeName = table.Column<string>(maxLength: 50, nullable: false),
                     IsPublic = table.Column<bool>(nullable: false),
-                    UserId = table.Column<int>(nullable: false),
-                    PersonFamilyTreeId = table.Column<int>(nullable: true)
+                    UserId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FamilyTrees", x => x.FamilyTreeId);
-                    table.ForeignKey(
-                        name: "FK_FamilyTrees_PersonFamilyTrees_PersonFamilyTreeId",
-                        column: x => x.PersonFamilyTreeId,
-                        principalTable: "PersonFamilyTrees",
-                        principalColumn: "PersonFamilyTreeId",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_FamilyTrees_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -205,10 +221,10 @@ namespace DAL.App.EF.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     FirstName = table.Column<string>(maxLength: 150, nullable: false),
                     LastName = table.Column<string>(maxLength: 150, nullable: false),
-                    Gender = table.Column<int>(nullable: false),
                     DateOfBirth = table.Column<DateTime>(nullable: false),
-                    FamilyTreeId = table.Column<int>(nullable: true),
-                    PersonFamilyTreeId = table.Column<int>(nullable: true)
+                    ImageSource = table.Column<string>(nullable: true),
+                    GenderId = table.Column<int>(nullable: false),
+                    FamilyTreeId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -220,11 +236,11 @@ namespace DAL.App.EF.Migrations
                         principalColumn: "FamilyTreeId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Persons_PersonFamilyTrees_PersonFamilyTreeId",
-                        column: x => x.PersonFamilyTreeId,
-                        principalTable: "PersonFamilyTrees",
-                        principalColumn: "PersonFamilyTreeId",
-                        onDelete: ReferentialAction.Restrict);
+                        name: "FK_Persons_Genders_GenderId",
+                        column: x => x.GenderId,
+                        principalTable: "Genders",
+                        principalColumn: "GenderId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -233,7 +249,7 @@ namespace DAL.App.EF.Migrations
                 {
                     RelationshipId = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RelationshipType = table.Column<int>(nullable: false),
+                    RelationshipTypeId = table.Column<int>(nullable: false),
                     ChildId = table.Column<int>(nullable: false),
                     ParentId = table.Column<int>(nullable: false)
                 },
@@ -251,6 +267,12 @@ namespace DAL.App.EF.Migrations
                         column: x => x.ParentId,
                         principalTable: "Persons",
                         principalColumn: "PersonId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Relationships_RelationshipTypes_RelationshipTypeId",
+                        column: x => x.RelationshipTypeId,
+                        principalTable: "RelationshipTypes",
+                        principalColumn: "RelationshipTypeId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -281,6 +303,11 @@ namespace DAL.App.EF.Migrations
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_GenderId",
+                table: "AspNetUsers",
+                column: "GenderId");
+
+            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
@@ -290,11 +317,6 @@ namespace DAL.App.EF.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FamilyTrees_PersonFamilyTreeId",
-                table: "FamilyTrees",
-                column: "PersonFamilyTreeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FamilyTrees_UserId",
@@ -307,9 +329,9 @@ namespace DAL.App.EF.Migrations
                 column: "FamilyTreeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Persons_PersonFamilyTreeId",
+                name: "IX_Persons_GenderId",
                 table: "Persons",
-                column: "PersonFamilyTreeId");
+                column: "GenderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Relationships_ChildId",
@@ -320,6 +342,11 @@ namespace DAL.App.EF.Migrations
                 name: "IX_Relationships_ParentId",
                 table: "Relationships",
                 column: "ParentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Relationships_RelationshipTypeId",
+                table: "Relationships",
+                column: "RelationshipTypeId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -349,13 +376,16 @@ namespace DAL.App.EF.Migrations
                 name: "Persons");
 
             migrationBuilder.DropTable(
+                name: "RelationshipTypes");
+
+            migrationBuilder.DropTable(
                 name: "FamilyTrees");
 
             migrationBuilder.DropTable(
-                name: "PersonFamilyTrees");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Genders");
         }
     }
 }
