@@ -1,6 +1,6 @@
 
 
-# <img src="project-items/family-tree.png" height=30> &nbsp; Sugupuu
+# <img src="project-items/family-tree.png" height=40> &nbsp; Sugupuu
 
 [Andmebaas](#andmebaas) 
 <br>
