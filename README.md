@@ -14,7 +14,7 @@
 
 
 ### Andmebaas
-<img src="project-items/family-tree-erd.png" width=400>
+<img src="project-items/family-tree-erd.png" width=800>
 <br>
 
 - Tabel "User" - Rakendust saavad kasutada vaid registreerunud kasutajad. See on tabel kasutajate hoidmiseks.
@@ -41,27 +41,27 @@
 
 ### Pildid
 #### Sugupuu vaade
-<img src="project-items/sugupuu-vaade.png" width=500 >
+<img src="project-items/sugupuu-vaade.png" width=1000 >
 <br>
 
 #### Sugupuu isikud
-<img src="project-items/sugupuu-isikud.png" width=500 >
+<img src="project-items/sugupuu-isikud.png" width=1000 >
 <br>
 
 #### Isiku detailvaade
-<img src="project-items/isik-detailvaade.png" width=500 >
+<img src="project-items/isik-detailvaade.png" width=1000 >
 <br>
 
 #### Isiku muutmine
-<img src="project-items/isik-muuda.png" width=500 >
+<img src="project-items/isik-muuda.png" width=1000 >
 <br>
 
 #### Isiku vanemate muutmine
-<img src="project-items/isik-vanemate-muutmine.png" width=500 >
+<img src="project-items/isik-vanemate-muutmine.png" width=1000 >
 <br>
 
 #### Isiku kustutamine
-<img src="project-items/isik-kustuta.png" width=500 >
+<img src="project-items/isik-kustuta.png" width=1000 >
 <br>
 <br>
 
