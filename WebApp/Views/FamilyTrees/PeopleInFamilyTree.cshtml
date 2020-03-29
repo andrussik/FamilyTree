@@ -29,39 +29,31 @@
      <thead>
      <tr>
          <th style="width: 10%"></th>
-         <th style="width: 20%">
-             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.FirstNameSort">Name</a>
+         <th style="width: 15%">
+             Name
+         </th>
+         <th style="width: 15%">
+             Mother
+         </th>
+         <th style="width: 15%">
+             Father
          </th>
          <th style="width: 20%">
-             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.GenderSort">Mother</a>
+             Birth order
          </th>
-         <th style="width: 20%">
-             <a asp-page="/Views/FamilyTees/PeopleInFamilyTree" asp-route-id="@Model.FamilyTree.FamilyTreeId" asp-route-sortOrder="@Model.GenderSort">Father</a>
-         </th>
-         <th style="width: 30%"></th>
+         <th style="width: 25%"></th>
      </tr>
      </thead>
      <tbody>
 
      @foreach (var item in Model.Persons)
      {
-         var relationships = item.ChildRelationships.ToList();
-         Person mother = null;
-         Person father = null;
-         foreach (var relationship in relationships)
-         {
-             if (relationship.RelationshipType.Type == "mother-child")
-             {
-                 mother = relationship.Parent;
-             }
-             else if (relationship.RelationshipType.Type == "father-child")
-             {
-                 father = relationship.Parent;
-             }
-         }
+         var mother = item.GetMother();
+         var father = item.GetFather();
+         var birthOrder = item.GetBirthOrder();
          <tr>
              <td>
-                 <img src="@Url.Content(item.ImageSource)" class="card-img" alt="Card image cap"/>
+                 <img src="~/images/@item.Picture" class="card-img" alt="Card image cap"/>
              </td>
              <td class="align-middle">
                  <a asp-controller="Persons" asp-action="Details" asp-route-id="@item.PersonId">
@@ -77,6 +69,12 @@
                  <a asp-controller="Persons" asp-action="Details" asp-route-id="@father?.PersonId">
                      @father?.FirstLastName
                  </a>
+             </td>
+             <td class="align-middle">
+                 @if (birthOrder != null)
+                     {
+                         @birthOrder
+                     }
              </td>
              <td class="align-middle text-right">
                  <a asp-controller="Persons" asp-action="Edit" asp-route-id="@item.PersonId">Edit person</a> |

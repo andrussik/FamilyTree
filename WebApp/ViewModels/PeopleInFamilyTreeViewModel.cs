@@ -10,10 +10,12 @@ namespace WebApp.ViewModels
         
         [BindProperty(SupportsGet = true)]
         public string SearchString { get; set; }
-        public string FirstNameSort { get; set; }
         public string LastNameSort { get; set; }
+        public string MotherNameSort { get; set; }
+        public string FatherNameSort { get; set; }
         public string DateOfBirthSort { get; set; }
         public string GenderSort { get; set; }
+        public string BirthOrderSort { get; set; }
         public IList<Person> Persons { get; set; }
     }
 }

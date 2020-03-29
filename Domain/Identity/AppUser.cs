@@ -21,7 +21,7 @@ namespace Domain.Identity
         [DataType(DataType.Date)]
         public DateTime DateOfBirth { get; set; } = default!;
         
-        public string? ImageSource { get; set; }
+        public string? Picture { get; set; }
         
         public int GenderId { get; set; } = default!;
         public Gender? Gender { get; set; }

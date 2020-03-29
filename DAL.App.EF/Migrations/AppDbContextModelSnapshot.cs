@@ -88,9 +88,6 @@ namespace DAL.App.EF.Migrations
                     b.Property<int>("GenderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImageSource")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
@@ -118,6 +115,9 @@ namespace DAL.App.EF.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Picture")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
@@ -163,13 +163,13 @@ namespace DAL.App.EF.Migrations
                     b.Property<int>("GenderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ImageSource")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("varchar(150) CHARACTER SET utf8mb4")
                         .HasMaxLength(150);
+
+                    b.Property<string>("Picture")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("PersonId");
 

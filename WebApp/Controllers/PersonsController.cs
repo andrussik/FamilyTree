@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DAL.App.EF;
 using Domain;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using WebApp.ViewModels;
 
 namespace WebApp.Controllers
@@ -14,10 +17,12 @@ namespace WebApp.Controllers
     public class PersonsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public PersonsController(AppDbContext context)
+        public PersonsController(AppDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         // GET: Persons
@@ -81,19 +86,25 @@ namespace WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int id, Person person)
+        public async Task<IActionResult> Create(int id, Person person, IFormFile? file)
         {
             
             if (ModelState.IsValid)
             {
                 person.FamilyTreeId = id;
-                if (person.ImageSource == null && person.GenderId == 1)
+
+                if (file != null)
                 {
-                    person.ImageSource = "~/images/female-user-avatar.png";
+                    var fileName = UploadPicture(file);
+                    person.Picture = fileName;
+                }
+                else if (person.GenderId == 1)
+                {
+                    person.Picture = "female-user-avatar.png";
                 } 
-                else if (person.ImageSource == null && person.GenderId == 2)
+                else if (person.GenderId == 2)
                 {
-                    person.ImageSource = "~/images/male-user-avatar.png";
+                    person.Picture = "male-user-avatar.png";
                 }
                 
                 _context.Add(person);
@@ -118,7 +129,7 @@ namespace WebApp.Controllers
             }
 
             var person = await _context.Persons.FindAsync(id);
-            
+
             if (person == null)
             {
                 return NotFound();
@@ -129,7 +140,7 @@ namespace WebApp.Controllers
                 Person = person,
                 GenderSelectList = new SelectList(_context.Genders, "GenderId", "Name", person.GenderId)
             };
-
+            
             return View(vm);
         }
 
@@ -138,20 +149,26 @@ namespace WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Person person)
+        public async Task<IActionResult> Edit(int id, Person person, IFormFile? file)
         {
             if (id != person.PersonId)
             {
                 return NotFound();
             }
-
+            
             if (ModelState.IsValid)
             {
+                if (file != null)
+                {
+                    var fileName = UploadPicture(file);
+                    DeletePicture(person.Picture);
+                    person.Picture = fileName;
+                }
                 
-                _context.Update(person);
+                _context.Persons.Update(person);
                 await _context.SaveChangesAsync();
-                
-                return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id });
+
+                return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id = person.FamilyTreeId });
             }
             var vm = new PersonsViewModel
             {
@@ -186,21 +203,48 @@ namespace WebApp.Controllers
                 
             return View(vm);
         }
-
+        
         // POST: Persons/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var person = await _context.Persons.FindAsync(id);
+            var familyTreeId = person.FamilyTreeId;
+            DeletePicture(person.Picture);
             _context.Persons.Remove(person);
             await _context.SaveChangesAsync();
-            return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id });
+            return RedirectToAction("PeopleInFamilyTree", "FamilyTrees", new { id = familyTreeId });
+        }
+        
+        private string? UploadPicture(IFormFile file)  
+        {
+            string uniqueFileName = null; 
+            
+            if (file.Length > 0 && new[] {".pdf", ".jpg", ".png", "jpeg"}
+                .Any(x => x == Path.GetExtension(file.FileName)))
+            {
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+                uniqueFileName = Guid.NewGuid() + "_" + file.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using var fileStream = new FileStream(filePath, FileMode.Create);
+                file.CopyTo(fileStream);
+            }
+
+            return uniqueFileName;
         }
 
-        private bool PersonExists(int id)
+        private void DeletePicture(string fileName)
         {
-            return _context.Persons.Any(e => e.PersonId == id);
+            if (fileName == "female-user-avatar.png" || fileName == "male-user-avatar.png") return;
+            
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+            var filePath = Path.Combine(uploadsFolder, fileName);
+            
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
         }
     }
 }

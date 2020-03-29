@@ -93,7 +93,7 @@ namespace DAL.App.EF.Migrations
                     FirstName = table.Column<string>(maxLength: 256, nullable: false),
                     LastName = table.Column<string>(maxLength: 256, nullable: false),
                     DateOfBirth = table.Column<DateTime>(nullable: false),
-                    ImageSource = table.Column<string>(nullable: true),
+                    Picture = table.Column<string>(nullable: true),
                     GenderId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -222,9 +222,9 @@ namespace DAL.App.EF.Migrations
                     FirstName = table.Column<string>(maxLength: 150, nullable: false),
                     LastName = table.Column<string>(maxLength: 150, nullable: false),
                     DateOfBirth = table.Column<DateTime>(nullable: false),
-                    ImageSource = table.Column<string>(nullable: true),
+                    Picture = table.Column<string>(nullable: true),
                     GenderId = table.Column<int>(nullable: false),
-                    FamilyTreeId = table.Column<int>(nullable: true)
+                    FamilyTreeId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,7 +234,7 @@ namespace DAL.App.EF.Migrations
                         column: x => x.FamilyTreeId,
                         principalTable: "FamilyTrees",
                         principalColumn: "FamilyTreeId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Persons_Genders_GenderId",
                         column: x => x.GenderId,

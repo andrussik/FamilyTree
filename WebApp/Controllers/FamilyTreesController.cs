@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using DAL.App.EF;
 using Domain;
+using Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 using WebApp.ViewModels;
 
@@ -16,19 +17,13 @@ namespace WebApp.Controllers
     public class FamilyTreesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public FamilyTreesController(AppDbContext context)
+        public FamilyTreesController(AppDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
-        
-        // [BindProperty(SupportsGet = true)]
-        // public string SearchString { get; set; }
-        // public string FirstNameSort { get; set; }
-        // public string LastNameSort { get; set; }
-        // public string DateOfBirthSort { get; set; }
-        // public string GenderSort { get; set; }
-        // public IList<Person> Persons { get; set; }
 
         // GET: FamilyTrees
         public async Task<IActionResult> Index()
@@ -70,14 +65,29 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("FamilyTreeId,FamilyTreeName,IsPublic,UserId")] FamilyTree familyTree)
         {
-            familyTree.UserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var user = await _userManager.GetUserAsync(User);
+            familyTree.UserId = user.Id;
+
             if (ModelState.IsValid)
             {
                 _context.Add(familyTree);
                 await _context.SaveChangesAsync();
+                var person = new Person()
+                {
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    DateOfBirth = user.DateOfBirth,
+                    Picture = user.GenderId == 1 ? 
+                        "female-user-avatar.png" : 
+                        "male-user-avatar.png",
+                    GenderId = user.GenderId,
+                    FamilyTreeId = familyTree.FamilyTreeId
+                };
+                _context.Add(person);
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            // ViewData["UserId"] = new SelectList(_context.Users, "Id", "FirstName", familyTree.UserId);
+            
             return View(familyTree);
         }
 
@@ -94,7 +104,8 @@ namespace WebApp.Controllers
             {
                 return NotFound();
             }
-            familyTree.UserId = Int32.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            Console.WriteLine(familyTree.UserId);
+
             return View(familyTree);
         }
 
@@ -103,7 +114,7 @@ namespace WebApp.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("FamilyTreeId,FamilyTreeName,IsPublic,UserId")] FamilyTree familyTree)
+        public async Task<IActionResult> Edit(int id, FamilyTree familyTree)
         {
             if (id != familyTree.FamilyTreeId)
             {
@@ -114,7 +125,7 @@ namespace WebApp.Controllers
             {
                 try
                 {
-                    _context.Update(familyTree);
+                    _context.FamilyTrees.Update(familyTree);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -145,12 +156,18 @@ namespace WebApp.Controllers
             var familyTree = await _context.FamilyTrees
                 .Include(f => f.User)
                 .FirstOrDefaultAsync(m => m.FamilyTreeId == id);
+            
             if (familyTree == null)
             {
                 return NotFound();
             }
+            
+            var vm = new FamilyTreesViewModel()
+            {
+                FamilyTree = familyTree
+            };
 
-            return View(familyTree);
+            return View(vm);
         }
 
         // POST: FamilyTrees/Delete/5
@@ -158,7 +175,9 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var familyTree = await _context.FamilyTrees.FindAsync(id);
+            var familyTree = await _context.FamilyTrees
+                .Include(f => f.Persons)
+                .FirstOrDefaultAsync(f => f.FamilyTreeId == id);
             _context.FamilyTrees.Remove(familyTree);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -170,44 +189,69 @@ namespace WebApp.Controllers
         }
         
         // GET: FamilyTrees/PeopleInFamilyTree
-        public async Task<IActionResult> PeopleInFamilyTree(int? id, string sortOrder, string searchString)
+        public async Task<IActionResult> PeopleInFamilyTree(int id, string? sortOrder, string? searchString)
         {
-            var vm = new PeopleInFamilyTreeViewModel();
-            
-            vm.FamilyTree = await _context.FamilyTrees
-                .Include(f => f.Persons)
-                .ThenInclude(t => t.Gender)
-                .Include(f => f.Persons)
-                .ThenInclude(t => t.ChildRelationships)
-                .ThenInclude(t => t.Parent)
-                .Include(f => f.Persons)
-                .ThenInclude(t => t.ChildRelationships)
-                .ThenInclude(t => t.RelationshipType)
-                .FirstOrDefaultAsync(m => m.FamilyTreeId == id);
-            
-            vm.Persons = vm.FamilyTree.Persons.ToList();
-            
-            vm.FirstNameSort = String.IsNullOrEmpty(sortOrder) ? "firstName_asc" : "";
-            vm.LastNameSort = String.IsNullOrEmpty(sortOrder) ? "lastName_asc" : "";
-            vm.DateOfBirthSort = String.IsNullOrEmpty(sortOrder) ? "dateOfBirth_asc" : "";
-            vm.GenderSort = String.IsNullOrEmpty(sortOrder) ? "gender_asc" : "";
-            
-            IQueryable<Person> personsIQ = from s in _context.Persons
+            var vm = new PeopleInFamilyTreeViewModel
+            {
+                FamilyTree = _context.FamilyTrees.FindAsync(id).Result,
+                Persons = _context.Persons
                     .Include(a => a.Gender)
                     .Include(t => t.ChildRelationships)
                     .ThenInclude(t => t.Parent)
                     .Include(t => t.ChildRelationships)
                     .ThenInclude(t => t.RelationshipType)
+                    .Where(p => p.FamilyTreeId == id)
+                    .ToList(),
+                LastNameSort = string.IsNullOrEmpty(sortOrder) ? "lastName_asc" : "",
+                MotherNameSort = string.IsNullOrEmpty(sortOrder) ? "motherName_asc" : "",
+                FatherNameSort = string.IsNullOrEmpty(sortOrder) ? "fatherName_asc" : "",
+                DateOfBirthSort = string.IsNullOrEmpty(sortOrder) ? "dateOfBirth_asc" : "",
+                GenderSort = string.IsNullOrEmpty(sortOrder) ? "gender_asc" : "",
+                BirthOrderSort = string.IsNullOrEmpty(sortOrder) ? "birthOrder_asc" : "",
+            };
+
+            if (sortOrder != null)
+            {
+                vm.Persons = await Sort(id, sortOrder);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                searchString = searchString.ToLower().Trim();
+                if (!string.IsNullOrWhiteSpace(searchString))
+                {
+                    vm.Persons = await Search(searchString);
+                    vm.SearchString = searchString;
+                }
+                
+            }
+            
+            return View(vm);
+        }
+        
+        public async Task<List<Person>> Sort(int id, string sortOrder)
+        {
+            IQueryable<Person> personsIQ = from s in _context.Persons
+                    .Include(a => a.Gender)
+                    .Include(t => t.ChildRelationships)
+                    .ThenInclude(t => t.Parent)
+                    .ThenInclude(t => t.ParentRelationships)
+                    .ThenInclude(t => t.Child)
+                    .Include(t => t.ChildRelationships)
+                    .ThenInclude(t => t.RelationshipType)
                     .Where(t => t.FamilyTreeId == id)
                 select s;
-            
+        
             switch (sortOrder)
             {
-                case "firstName_asc":
-                    personsIQ = personsIQ.OrderBy(s => s.FirstName);
-                    break;
                 case "lastName_asc":
                     personsIQ = personsIQ.OrderBy(s => s.LastName);
+                    break;
+                case "motherName_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.GetMother() != null ? s.GetMother().LastName : string.Empty);
+                    break;
+                case "fatherName_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.GetFather() != null ? s.GetFather().LastName : string.Empty);
                     break;
                 case "dateOfBirth_asc":
                     personsIQ = personsIQ.OrderBy(s => s.DateOfBirth);
@@ -215,19 +259,19 @@ namespace WebApp.Controllers
                 case "gender_asc":
                     personsIQ = personsIQ.OrderBy(s => s.Gender.Name);
                     break;
+                case "birthOrder_asc":
+                    personsIQ = personsIQ.OrderBy(s => s.GetBirthOrder() != null ? s.GetBirthOrder() : int.MaxValue);
+                    break;
                 default:
                     personsIQ = personsIQ.OrderBy(s => s.LastName);
                     break;
             }
             
-            vm.Persons = await personsIQ.ToListAsync();
-            
-            
-            if (!string.IsNullOrWhiteSpace(searchString))
-            {
-                searchString = searchString.ToLower().Trim();
-            }
-            
+            return await personsIQ.ToListAsync();
+        }
+
+        public async Task<List<Person>> Search(string searchString)
+        {
             var personQuery = _context.Persons
                 .Include(a => a.Gender)
                 .Include(t => t.ChildRelationships)
@@ -235,22 +279,16 @@ namespace WebApp.Controllers
                 .Include(t => t.ChildRelationships)
                 .ThenInclude(t => t.RelationshipType)
                 .AsQueryable();
-            
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                personQuery = personQuery.Where(s =>
-                    s.FirstName.ToLower().Contains(searchString) ||
-                    s.LastName.ToLower().Contains(searchString)
-                );
-            
-                personQuery = personQuery.OrderBy(a => a.LastName);
 
-                vm.SearchString = searchString;
-                vm.Persons = await personQuery.ToListAsync();
-            
-            }
-            
-            return View(vm);
+
+            personQuery = personQuery.Where(s =>
+                s.FirstName.ToLower().Contains(searchString) ||
+                s.LastName.ToLower().Contains(searchString)
+            );
+
+            personQuery = personQuery.OrderBy(a => a.LastName);
+
+            return await personQuery.ToListAsync();
         }
     }
 }

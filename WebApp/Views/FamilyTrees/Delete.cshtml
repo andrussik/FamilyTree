@@ -1,4 +1,4 @@
-@model Domain.FamilyTree
+@model WebApp.ViewModels.FamilyTreesViewModel
 
 @{
     ViewData["Title"] = "Delete";
@@ -12,21 +12,21 @@
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FamilyTreeName)
+            @Html.DisplayNameFor(model => model.FamilyTree.FamilyTreeName)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FamilyTreeName)
+            @Html.DisplayFor(model => model.FamilyTree.FamilyTreeName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsPublic)
+            @Html.DisplayNameFor(model => model.FamilyTree.IsPublic)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsPublic)
+            @Html.DisplayFor(model => model.FamilyTree.IsPublic)
         </dd>
     </dl>
     
     <form asp-action="Delete">
-        <input type="hidden" asp-for="FamilyTreeId" />
+        <input type="hidden" asp-for="FamilyTree.FamilyTreeId" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-action="Index">Back to List</a>
     </form>

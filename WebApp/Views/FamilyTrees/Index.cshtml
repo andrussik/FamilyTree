@@ -9,7 +9,7 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<table class="table text-left">
+<table class="table text-left" style="width: 60%">
     <thead>
         <tr>
             <th>
@@ -30,7 +30,7 @@
             <td class="align-middle text-left">
                 @(item.IsPublic ? "Yes" : "No")
             </td>
-            <td class="align-middle text-left">
+            <td class="align-middle text-right">
                 <a asp-action="PeopleInFamilyTree" asp-route-id="@item.FamilyTreeId">View people</a> |
                 <a asp-action="Edit" asp-route-id="@item.FamilyTreeId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.FamilyTreeId">Details</a> |
